@@ -1,0 +1,13 @@
+﻿/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Uu]ser[Ss]ettings/
+*.sln
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.unityproj
+*.DS_Store

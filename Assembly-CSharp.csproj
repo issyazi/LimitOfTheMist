@@ -59,7 +59,7 @@
     <UnityVersion>2022.3.33f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Users\annpr\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.1.1\Analyzers\Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="C:\Users\annpr\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.1.2\Analyzers\Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="D:\Unity\2022.3.33f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="D:\Unity\2022.3.33f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
@@ -67,6 +67,7 @@
     <Compile Include="Assets\Scripts\MenuScripts\MainMenu.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyAI.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerVisial.cs" />
+    <Compile Include="Assets\Inventory\Inventory.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerAttack.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\GameInput.cs" />
     <Compile Include="Assets\Scripts\CameraFixation.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="Assets\Scripts\MenuScripts\Music.cs" />
     <Compile Include="Assets\Scripts\Enemy\IdleBehavior.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyEntity.cs" />
+    <Compile Include="Assets\Inventory\DataBase.cs" />
     <Compile Include="Assets\Scripts\Enemy\PatrolBehaviour.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyVisual.cs" />
     <Compile Include="Assets\Scripts\Weapon\ActiveWeapon.cs" />
@@ -83,6 +85,29 @@
     <Compile Include="Assets\Scripts\Player Controls.cs" />
     <Compile Include="Assets\Scripts\Weapon\Sword.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\PauseMenu.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Overlay.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMPro_Mobile.cginc" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF SSD.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
+    <None Include="Assets\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Custom-Atlas.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile SSD.shader" />
+    <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
+    <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
+    <None Include="Assets\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile.shader" />
+    <None Include="Assets\TextMesh Pro\Shaders\TMP_Sprite.shader" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

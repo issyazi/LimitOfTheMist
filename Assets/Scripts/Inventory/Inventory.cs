@@ -19,11 +19,11 @@ public class Inventory : MonoBehaviour
     public Vector3 offset;
     public GameObject backGround;
 
-    // Новые поля для кнопок
-    public Button openInventoryButton; // Кнопка открытия инвентаря
-    public Button closeInventoryButton; // Кнопка-крестик для закрытия
+    public Button openInventoryButton;
+    public Button closeInventoryButton;
 
     private bool isInventoryOpen = false;
+    public bool IsInventoryOpen => isInventoryOpen;
 
     public void Start()
     {
@@ -32,40 +32,61 @@ public class Inventory : MonoBehaviour
             AddGraphics();
         }
 
-        for (int i = 0; i < maxCount; i++) // Тестовое наполнение
+        for (int i = 0; i < maxCount; i++)
         {
             AddItem(i, data.items[Random.Range(0, data.items.Count)], Random.Range(1, 99));
         }
         UpdateInventory();
 
-        // Инициализация кнопок
-        openInventoryButton.onClick.AddListener(ToggleInventory);
-        closeInventoryButton.onClick.AddListener(ToggleInventory);
+        // Добавляем обработчики через EventTrigger для отслеживания кликов
+        AddClickHandler(openInventoryButton, ToggleInventory);
+        AddClickHandler(closeInventoryButton, ToggleInventory);
 
-        // Убедимся, что инвентарь изначально скрыт
         backGround.SetActive(false);
+
+        if (GameInput.Instance != null)
+        {
+            GameInput.Instance.SetCombatEnabled(true);
+        }
+    }
+
+    private void AddClickHandler(Button button, UnityEngine.Events.UnityAction action)
+    {
+        EventTrigger trigger = button.gameObject.GetComponent<EventTrigger>() ?? button.gameObject.AddComponent<EventTrigger>();
+        EventTrigger.Entry pointerDownEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
+        pointerDownEntry.callback.AddListener((eventData) => OnButtonPointerDown());
+        trigger.triggers.Add(pointerDownEntry);
+
+        button.onClick.AddListener(action);
+    }
+
+    private void OnButtonPointerDown()
+    {
+        if (GameInput.Instance != null)
+        {
+            Debug.Log("Клик по кнопке UI: временно отключаем Combat");
+            GameInput.Instance.SetCombatEnabled(false);
+        }
     }
 
     public void Update()
     {
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            ToggleInventory();
-        }
         if (currentID != -1)
         {
             MoveObject();
         }
     }
 
-    // Переключение состояния инвентаря
     public void ToggleInventory()
     {
         isInventoryOpen = !isInventoryOpen;
         backGround.SetActive(isInventoryOpen);
-
-        // Пауза/возобновление игры
         Time.timeScale = isInventoryOpen ? 0f : 1f;
+
+        if (GameInput.Instance != null)
+        {
+            GameInput.Instance.SetCombatEnabled(!isInventoryOpen);
+        }
 
         if (isInventoryOpen)
         {

@@ -65,18 +65,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\MenuScripts\MainMenu.cs" />
+    <Compile Include="Assets\Scripts\MenuScripts\InventoryButton.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyAI.cs" />
     <Compile Include="Assets\Scripts\Inventory\Inventory.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerVisial.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerAttack.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\GameInput.cs" />
     <Compile Include="Assets\Scripts\CameraFixation.cs" />
+    <Compile Include="Assets\Scripts\Inventory\Chest.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerHealth.cs" />
     <Compile Include="Assets\Scripts\Weapon\SwordVisual.cs" />
     <Compile Include="Assets\Scripts\PlayerScripts\PlayerController.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\Music.cs" />
     <Compile Include="Assets\Scripts\Enemy\IdleBehavior.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyEntity.cs" />
+    <Compile Include="Assets\Scripts\Inventory\ItemPickup.cs" />
     <Compile Include="Assets\Scripts\Enemy\PatrolBehaviour.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyVisual.cs" />
     <Compile Include="Assets\Scripts\Weapon\ActiveWeapon.cs" />

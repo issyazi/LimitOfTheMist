@@ -32,10 +32,11 @@ public class Inventory : MonoBehaviour
             AddGraphics();
         }
 
-        for (int i = 0; i < maxCount; i++)
-        {
-            AddItem(i, data.items[Random.Range(0, data.items.Count)], Random.Range(1, 99));
-        }
+        // Убрана генерация случайных предметов
+        // for (int i = 0; i < maxCount; i++)
+        // {
+        //     AddItem(i, data.items[Random.Range(0, data.items.Count)], Random.Range(1, 99));
+        // }
         UpdateInventory();
 
         // Добавляем обработчики через EventTrigger для отслеживания кликов
@@ -75,6 +76,12 @@ public class Inventory : MonoBehaviour
         {
             MoveObject();
         }
+
+        // Toggle inventory with 'I' key
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            ToggleInventory();
+        }
     }
 
     public void ToggleInventory()
@@ -100,13 +107,13 @@ public class Inventory : MonoBehaviour
         {
             if (items[i].id == item.id)
             {
-                if (items[i].count < 128)
+                if (items[i].count < 16) // Изменено с 128 на 16
                 {
                     items[i].count += count;
-                    if (items[i].count > 128)
+                    if (items[i].count > 16) // Изменено с 128 на 16
                     {
-                        count = items[i].count - 128;
-                        items[i].count = 128; // Исправлено с 64 на 128
+                        count = items[i].count - 16; // Изменено с 128 на 16
+                        items[i].count = 16; // Изменено с 128 на 16
                     }
                     else
                     {
@@ -220,14 +227,14 @@ public class Inventory : MonoBehaviour
             }
             else
             {
-                if (ii.count + currentItem.count <= 128)
+                if (ii.count + currentItem.count <= 16) // Изменено с 128 на 16
                 {
                     ii.count += currentItem.count;
                 }
                 else
                 {
-                    AddItem(currentID, data.items[ii.id], ii.count + currentItem.count - 128);
-                    ii.count = 128;
+                    AddItem(currentID, data.items[ii.id], ii.count + currentItem.count - 16); // Изменено с 128 на 16
+                    ii.count = 16; // Изменено с 128 на 16
                 }
 
                 ii.itemGameObj.GetComponentInChildren<TextMeshProUGUI>().text = ii.count.ToString();

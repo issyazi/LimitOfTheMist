@@ -152,4 +152,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: 0
   count: 0
-  pickupRange: 1
+  pickupRange: 2

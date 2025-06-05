@@ -3191,3 +3191,13 @@ AssetImportParameters requested are different than current active one (requested
   custom:video-encoder-webm-vp8: eb34c28f22e8b96e1ab97ce403110664 -> 
   custom:audio-decoder-ogg-vorbis: bf7c407c2cedff20999df2af8eb42d56 -> 
   custom:audio-encoder-webm-vorbis: bf7c407c2cedff20999df2af8eb42d56 -> 
+========================================================================
+Received Import Request.
+  Time since last request: 12575.977909 seconds.
+  path: Assets/Prefabs/Chest.prefab
+  artifactKey: Guid(f4bf9469148f24f4dbe35bcfed75c6df) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Prefabs/Chest.prefab using Guid(f4bf9469148f24f4dbe35bcfed75c6df) Importer(815301076,1909f56bfc062723c751e8b465ee728b) [PhysX] Initialized MultithreadedTaskDispatcher with 8 workers.
+[PhysX] Initialized MultithreadedTaskDispatcher with 8 workers.
+ -> (artifact id: '81e318923f0bb1bcb6dcf751f42fd0e0') in 0.894150 seconds
+Number of updated asset objects reloaded before import = 0
+Number of asset objects unloaded after import = 56

@@ -362,7 +362,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8034da9c4a2b2824cb44792a584638e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxHealth: 20
+  _maxHealth: 18
+  difficulty: 0
+  echoPrefab: {fileID: 0}
 --- !u!60 &7387632269657243316
 PolygonCollider2D:
   m_ObjectHideFlags: 0

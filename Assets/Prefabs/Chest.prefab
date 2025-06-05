@@ -126,7 +126,7 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0.24408138}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.49150738, y: 0.23186076}
+    pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 1.25, y: 1.3125}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
@@ -187,7 +187,7 @@ PolygonCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.49150738, y: 0.23186076}
+    pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 1.25, y: 1.3125}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
@@ -216,7 +216,10 @@ MonoBehaviour:
   promptUI: {fileID: 2923166452698059441}
   promptText: {fileID: 4429365577398303842}
   interactionRange: 2
-  itemPrefabs: []
+  itemPrefabs:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   spawnPoint: {fileID: 8697217084942262225}
 --- !u!95 &1362547947892782661
 Animator:
@@ -228,7 +231,7 @@ Animator:
   m_GameObject: {fileID: 370067796869096700}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 7c3f2c44502dc064c8d85519c1b0ffa9, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

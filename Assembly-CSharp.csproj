@@ -80,6 +80,7 @@
     <Compile Include="Assets\Scripts\Enemy\IdleBehavior.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyEntity.cs" />
     <Compile Include="Assets\Scripts\Inventory\ItemPickup.cs" />
+    <Compile Include="Assets\Scripts\Echo\EchoManager.cs" />
     <Compile Include="Assets\Scripts\Enemy\PatrolBehaviour.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyVisual.cs" />
     <Compile Include="Assets\Scripts\Weapon\ActiveWeapon.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="Assets\Scripts\Weapon\Sword.cs" />
     <Compile Include="Assets\Scripts\Inventory\DataBase.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\PauseMenu.cs" />
+    <Compile Include="Assets\Scripts\Echo\EchoPickup.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

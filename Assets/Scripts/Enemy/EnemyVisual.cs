@@ -48,11 +48,13 @@ public class EnemyVisual : MonoBehaviour
         _animator.SetBool(IS_RUNNING, _enemyAI.IsRunning);
         _animator.SetFloat(CHASING_SPEED_MULTIPLUER, _enemyAI.GetRoamingAnimationSpeed());
     }
-    public void TriggerAttackAnimationTurnOff() {
-        _enemyEntity.PolygonColliderTurnOf();
+    public void TriggerAttackAnimationTurnOff()
+    {
+        _enemyEntity.PolygonColliderTurnOff(); 
     }
-    public void TriggerAttackAnimationTurnOn() {
-        _enemyEntity.PolygonColliderTurnOn();
-    }
-    
+
+    public void TriggerAttackAnimationTurnOn()
+    {
+        _enemyEntity.PolygonColliderTurnOn(); 
+    }   
 }

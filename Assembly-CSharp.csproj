@@ -87,6 +87,7 @@
     <Compile Include="Assets\Scripts\Utils.cs" />
     <Compile Include="Assets\Scripts\Player Controls.cs" />
     <Compile Include="Assets\Scripts\Weapon\Sword.cs" />
+    <Compile Include="Assets\Scripts\Inventory\TrashCan.cs" />
     <Compile Include="Assets\Scripts\Inventory\DataBase.cs" />
     <Compile Include="Assets\Scripts\MenuScripts\PauseMenu.cs" />
     <Compile Include="Assets\Scripts\Echo\EchoPickup.cs" />

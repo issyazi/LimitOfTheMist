@@ -21,6 +21,7 @@ public class Inventory : MonoBehaviour
 
     public Button openInventoryButton;
     public Button closeInventoryButton;
+    public Button trashCanButton;
 
     private bool isInventoryOpen = false;
     public bool IsInventoryOpen => isInventoryOpen;
@@ -32,14 +33,8 @@ public class Inventory : MonoBehaviour
             AddGraphics();
         }
 
-        // Убрана генерация случайных предметов
-        // for (int i = 0; i < maxCount; i++)
-        // {
-        //     AddItem(i, data.items[Random.Range(0, data.items.Count)], Random.Range(1, 99));
-        // }
         UpdateInventory();
 
-        // Добавляем обработчики через EventTrigger для отслеживания кликов
         AddClickHandler(openInventoryButton, ToggleInventory);
         AddClickHandler(closeInventoryButton, ToggleInventory);
 
@@ -77,7 +72,6 @@ public class Inventory : MonoBehaviour
             MoveObject();
         }
 
-        // Toggle inventory with 'I' key
         if (Input.GetKeyDown(KeyCode.I))
         {
             ToggleInventory();
@@ -107,13 +101,13 @@ public class Inventory : MonoBehaviour
         {
             if (items[i].id == item.id)
             {
-                if (items[i].count < 16) // Изменено с 128 на 16
+                if (items[i].count < 16)
                 {
                     items[i].count += count;
-                    if (items[i].count > 16) // Изменено с 128 на 16
+                    if (items[i].count > 16)
                     {
-                        count = items[i].count - 16; // Изменено с 128 на 16
-                        items[i].count = 16; // Изменено с 128 на 16
+                        count = items[i].count - 16;
+                        items[i].count = 16;
                     }
                     else
                     {
@@ -208,38 +202,67 @@ public class Inventory : MonoBehaviour
 
     public void SelectObject()
     {
+        int targetID = int.Parse(es.currentSelectedGameObject.name);
+
         if (currentID == -1)
         {
-            currentID = int.Parse(es.currentSelectedGameObject.name);
-            currentItem = CopyInventoryItem(items[currentID]);
-            movingObject.gameObject.SetActive(true);
-            movingObject.GetComponent<Image>().sprite = data.items[currentItem.id].img;
-
-            AddItem(currentID, data.items[0], 0);
+            if (items[targetID].id != 0) // Проверка, чтобы не выбирать пустую ячейку
+            {
+                currentID = targetID;
+                currentItem = CopyInventoryItem(items[currentID]);
+                movingObject.gameObject.SetActive(true);
+                movingObject.GetComponent<Image>().sprite = data.items[currentItem.id].img;
+                AddItem(currentID, data.items[0], 0);
+            }
         }
         else
         {
-            ItemInventory ii = items[int.Parse(es.currentSelectedGameObject.name)];
-            if (currentItem.id != ii.id)
+            ItemInventory targetItem = items[targetID];
+            if (currentID == targetID) // Игнорируем, если перетаскиваем обратно в ту же ячейку
             {
-                AddInventoryItem(currentID, ii);
-                AddInventoryItem(int.Parse(es.currentSelectedGameObject.name), currentItem);
+                AddItem(currentID, data.items[currentItem.id], currentItem.count); // Возвращаем предмет
+                currentID = -1;
+                movingObject.gameObject.SetActive(false);
+            }
+            else if (targetItem.id == 0 && currentItem.id != 0) // Пустая ячейка
+            {
+                AddInventoryItem(targetID, currentItem);
+                AddItem(currentID, data.items[0], 0);
+            }
+            else if (currentItem.id != targetItem.id)
+            {
+                AddInventoryItem(currentID, targetItem);
+                AddInventoryItem(targetID, currentItem);
             }
             else
             {
-                if (ii.count + currentItem.count <= 16) // Изменено с 128 на 16
+                if (targetItem.count + currentItem.count <= 16)
                 {
-                    ii.count += currentItem.count;
+                    targetItem.count += currentItem.count;
                 }
                 else
                 {
-                    AddItem(currentID, data.items[ii.id], ii.count + currentItem.count - 16); // Изменено с 128 на 16
-                    ii.count = 16; // Изменено с 128 на 16
+                    AddItem(currentID, data.items[targetItem.id], targetItem.count + currentItem.count - 16);
+                    targetItem.count = 16;
                 }
 
-                ii.itemGameObj.GetComponentInChildren<TextMeshProUGUI>().text = ii.count.ToString();
+                targetItem.itemGameObj.GetComponentInChildren<TextMeshProUGUI>().text = targetItem.count.ToString();
             }
 
+            currentID = -1;
+            movingObject.gameObject.SetActive(false);
+        }
+    }
+
+    public void DeleteItem(int id)
+    {
+        if (id >= 0 && id < maxCount)
+        {
+            items[id].id = 0;
+            items[id].count = 0;
+            items[id].itemGameObj.GetComponent<Image>().sprite = null;
+            items[id].itemGameObj.GetComponentInChildren<TextMeshProUGUI>().text = "";
+            UpdateInventory();
             currentID = -1;
             movingObject.gameObject.SetActive(false);
         }

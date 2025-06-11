@@ -18,11 +18,9 @@ public class Inventory : MonoBehaviour
     public RectTransform movingObject;
     public Vector3 offset;
     public GameObject backGround;
-
     public Button openInventoryButton;
     public Button closeInventoryButton;
     public Button trashCanButton;
-
     private bool isInventoryOpen = false;
     public bool IsInventoryOpen => isInventoryOpen;
 
@@ -32,14 +30,10 @@ public class Inventory : MonoBehaviour
         {
             AddGraphics();
         }
-
         UpdateInventory();
-
         AddClickHandler(openInventoryButton, ToggleInventory);
         AddClickHandler(closeInventoryButton, ToggleInventory);
-
         backGround.SetActive(false);
-
         if (GameInput.Instance != null)
         {
             GameInput.Instance.SetCombatEnabled(true);
@@ -52,7 +46,6 @@ public class Inventory : MonoBehaviour
         EventTrigger.Entry pointerDownEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
         pointerDownEntry.callback.AddListener((eventData) => OnButtonPointerDown());
         trigger.triggers.Add(pointerDownEntry);
-
         button.onClick.AddListener(action);
     }
 
@@ -71,7 +64,6 @@ public class Inventory : MonoBehaviour
         {
             MoveObject();
         }
-
         if (Input.GetKeyDown(KeyCode.I))
         {
             ToggleInventory();
@@ -83,12 +75,10 @@ public class Inventory : MonoBehaviour
         isInventoryOpen = !isInventoryOpen;
         backGround.SetActive(isInventoryOpen);
         Time.timeScale = isInventoryOpen ? 0f : 1f;
-
         if (GameInput.Instance != null)
         {
             GameInput.Instance.SetCombatEnabled(!isInventoryOpen);
         }
-
         if (isInventoryOpen)
         {
             UpdateInventory();
@@ -135,7 +125,6 @@ public class Inventory : MonoBehaviour
         items[id].id = item.id;
         items[id].count = count;
         items[id].itemGameObj.GetComponent<Image>().sprite = item.img;
-
         if (count > 1 && item.id != 0)
         {
             items[id].itemGameObj.GetComponentInChildren<TextMeshProUGUI>().text = count.ToString();
@@ -151,7 +140,6 @@ public class Inventory : MonoBehaviour
         items[id].id = invItem.id;
         items[id].count = invItem.count;
         items[id].itemGameObj.GetComponent<Image>().sprite = data.items[invItem.id].img;
-
         if (invItem.count > 1 && invItem.id != 0)
         {
             items[id].itemGameObj.GetComponentInChildren<TextMeshProUGUI>().text = invItem.count.ToString();
@@ -168,18 +156,13 @@ public class Inventory : MonoBehaviour
         {
             GameObject newItem = Instantiate(gameObjShow, InventoryMainObject.transform);
             newItem.name = i.ToString();
-
             ItemInventory ii = new ItemInventory();
             ii.itemGameObj = newItem;
-
             RectTransform rt = newItem.GetComponent<RectTransform>();
             rt.localPosition = Vector3.zero;
             rt.localScale = Vector3.one;
             newItem.GetComponentInChildren<RectTransform>().localScale = Vector3.one;
-
-            Button tempButton = newItem.GetComponent<Button>();
-            tempButton.onClick.AddListener(SelectObject);
-
+            InventorySlotHandler handler = newItem.AddComponent<InventorySlotHandler>();
             items.Add(ii);
         }
     }
@@ -188,25 +171,57 @@ public class Inventory : MonoBehaviour
     {
         for (int i = 0; i < maxCount; i++)
         {
-            if (items[i].id != 0 && items[i].count > 1)
-            {
-                items[i].itemGameObj.GetComponentInChildren<TextMeshProUGUI>().text = items[i].count.ToString();
-            }
-            else
-            {
-                items[i].itemGameObj.GetComponentInChildren<TextMeshProUGUI>().text = "";
-            }
-            items[i].itemGameObj.GetComponent<Image>().sprite = data.items[items[i].id].img;
+            UpdateSlot(i);
+            Debug.LogError($"ОПА БЛЯ");
+        }
+    }
+    public void UpdateSlot(int id)
+    {
+        if (id < 0 || id >= maxCount || items[id] == null) return;
+
+        ItemInventory item = items[id];
+        Image image = item.itemGameObj.GetComponent<Image>();
+        TextMeshProUGUI text = item.itemGameObj.GetComponentInChildren<TextMeshProUGUI>();
+
+        if (image != null)
+            image.sprite = item.id == 0 ? null : data.items[item.id].img;
+
+        if (text != null)
+            text.text = item.id != 0 && item.count > 1 ? item.count.ToString() : "";
+    }
+
+    public void SelectObject(PointerEventData.InputButton buttonType)
+    {
+        if (EventSystem.current == null || EventSystem.current.currentSelectedGameObject == null)
+        {
+            Debug.LogWarning("UI элемент не выбран. Возможно, вы кликнули вне слотов.");
+            return;
+        }
+
+        string selectedName = EventSystem.current.currentSelectedGameObject.name;
+
+        if (!int.TryParse(selectedName, out int targetID))
+        {
+            Debug.LogError($"Имя объекта '{selectedName}' не является числом. Это должен быть ID слота.");
+            return;
+        }
+
+        if (buttonType == PointerEventData.InputButton.Left)
+        {
+            HandleLeftClick(targetID);
+        }
+        else if (buttonType == PointerEventData.InputButton.Right)
+        {
+            HandleRightClick(targetID);
         }
     }
 
-    public void SelectObject()
+    private void HandleLeftClick(int targetID)
     {
-        int targetID = int.Parse(es.currentSelectedGameObject.name);
-
         if (currentID == -1)
         {
-            if (items[targetID].id != 0) // Проверка, чтобы не выбирать пустую ячейку
+            // Берём весь стак
+            if (!items[targetID].isEmpty())
             {
                 currentID = targetID;
                 currentItem = CopyInventoryItem(items[currentID]);
@@ -218,39 +233,121 @@ public class Inventory : MonoBehaviour
         else
         {
             ItemInventory targetItem = items[targetID];
-            if (currentID == targetID) // Игнорируем, если перетаскиваем обратно в ту же ячейку
+
+            if (currentID == targetID)
             {
-                AddItem(currentID, data.items[currentItem.id], currentItem.count); // Возвращаем предмет
+                // Возвращаем обратно
+                AddItem(currentID, data.items[currentItem.id], currentItem.count);
                 currentID = -1;
                 movingObject.gameObject.SetActive(false);
             }
-            else if (targetItem.id == 0 && currentItem.id != 0) // Пустая ячейка
+            else if (targetItem.id == 0)
             {
+                // Кладём в пустую ячейку
                 AddInventoryItem(targetID, currentItem);
                 AddItem(currentID, data.items[0], 0);
+                currentID = -1;
+                movingObject.gameObject.SetActive(false);
             }
             else if (currentItem.id != targetItem.id)
             {
-                AddInventoryItem(currentID, targetItem);
+                // Меняем местами
+                ItemInventory temp = CopyInventoryItem(targetItem);
                 AddInventoryItem(targetID, currentItem);
+                AddInventoryItem(currentID, temp);
+                currentID = -1;
+                movingObject.gameObject.SetActive(false);
             }
             else
             {
-                if (targetItem.count + currentItem.count <= 16)
+                // Складываем стаки
+                int total = currentItem.count + targetItem.count;
+                int maxStack = 16;
+
+                if (total <= maxStack)
                 {
-                    targetItem.count += currentItem.count;
+                    targetItem.count = total;
+                    currentID = -1;
+                    movingObject.gameObject.SetActive(false);
                 }
                 else
                 {
-                    AddItem(currentID, data.items[targetItem.id], targetItem.count + currentItem.count - 16);
-                    targetItem.count = 16;
+                    targetItem.count = maxStack;
+                    currentItem.count = total - maxStack;
+                    movingObject.gameObject.SetActive(true);
                 }
 
-                targetItem.itemGameObj.GetComponentInChildren<TextMeshProUGUI>().text = targetItem.count.ToString();
+                targetItem.itemGameObj.GetComponentInChildren<TextMeshProUGUI>().text =
+                    targetItem.count > 1 ? targetItem.count.ToString() : "";
             }
+        }
+    }
 
-            currentID = -1;
-            movingObject.gameObject.SetActive(false);
+    private void HandleRightClick(int targetID)
+    {   
+        Debug.Log($"[HandleRightClick] ID: {targetID}, Count: {items[targetID].count}, ID: {items[targetID].id}");
+        if (currentID == -1)
+        {
+            if (!items[targetID].isEmpty() && items[targetID].count > 0)
+            {
+                currentID = targetID;
+                currentItem = new ItemInventory
+                {
+                    id = items[targetID].id,
+                    count = 1,
+                    itemGameObj = items[targetID].itemGameObj
+                };
+
+                items[targetID].count--;
+
+                if (items[targetID].count <= 0)
+                {
+                    // Очищаем ячейку только если ничего не осталось
+                    items[targetID].id = 0;
+                    items[targetID].count = 0;
+                    UpdateSlot(targetID);
+                }
+                else
+                {
+                    UpdateSlot(targetID); // ✅ Обновляем без вызова AddItem
+                }
+
+                movingObject.gameObject.SetActive(true);
+                movingObject.GetComponent<Image>().sprite = data.items[currentItem.id].img;
+            }
+        }
+        else
+        {
+            ItemInventory targetItem = items[targetID];
+
+            if (targetItem.id == 0)
+            {
+                // Кладём 1 предмет в пустую ячейку
+                items[targetID].id = currentItem.id;
+                items[targetID].count = 1;
+                UpdateSlot(targetID);
+
+                currentItem.count--;
+                if (currentItem.count <= 0)
+                {
+                    currentID = -1;
+                    movingObject.gameObject.SetActive(false);
+                }
+            }
+            else if (currentItem.id == targetItem.id && targetItem.count < 16)
+            {
+                // Добавляем к существующему стаку
+                targetItem.count++;
+                currentItem.count--;
+
+                UpdateSlot(targetID);
+
+                if (currentItem.count <= 0)
+                {
+                    currentID = -1;
+                    movingObject.gameObject.SetActive(false);
+                }
+            }
         }
     }
 
@@ -262,7 +359,7 @@ public class Inventory : MonoBehaviour
             items[id].count = 0;
             items[id].itemGameObj.GetComponent<Image>().sprite = null;
             items[id].itemGameObj.GetComponentInChildren<TextMeshProUGUI>().text = "";
-            UpdateInventory();
+            UpdateSlot(id);
             currentID = -1;
             movingObject.gameObject.SetActive(false);
         }
@@ -276,7 +373,6 @@ public class Inventory : MonoBehaviour
             null,
             out Vector2 localPoint
         );
-
         movingObject.localPosition = new Vector3(localPoint.x, localPoint.y, 0) + offset;
     }
 
@@ -296,4 +392,9 @@ public class ItemInventory
     public int id;
     public GameObject itemGameObj;
     public int count;
+
+    public bool isEmpty()
+    {
+        return id == 0 || count <= 0;
+    }
 }

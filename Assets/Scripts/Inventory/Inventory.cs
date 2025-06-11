@@ -22,6 +22,8 @@ public class Inventory : MonoBehaviour
     public Button closeInventoryButton;
     public Button trashCanButton;
     private bool isInventoryOpen = false;
+    private bool isRightClickPickup = false;
+    private int originalCountBeforePickup;
     public bool IsInventoryOpen => isInventoryOpen;
 
     public void Start()
@@ -85,7 +87,7 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    public void SeachForSameItem(Item item, int count)
+    public void SearchForSameItem(Item item, int count)
     {
         for (int i = 0; i < maxCount; i++)
         {
@@ -172,7 +174,6 @@ public class Inventory : MonoBehaviour
         for (int i = 0; i < maxCount; i++)
         {
             UpdateSlot(i);
-            Debug.LogError($"ОПА БЛЯ");
         }
     }
     public void UpdateSlot(int id)
@@ -218,105 +219,8 @@ public class Inventory : MonoBehaviour
 
     private void HandleLeftClick(int targetID)
     {
-        if (currentID == -1)
-        {
-            // Берём весь стак
-            if (!items[targetID].isEmpty())
-            {
-                currentID = targetID;
-                currentItem = CopyInventoryItem(items[currentID]);
-                movingObject.gameObject.SetActive(true);
-                movingObject.GetComponent<Image>().sprite = data.items[currentItem.id].img;
-                AddItem(currentID, data.items[0], 0);
-            }
-        }
-        else
-        {
-            ItemInventory targetItem = items[targetID];
-
-            if (currentID == targetID)
-            {
-                // Возвращаем обратно
-                AddItem(currentID, data.items[currentItem.id], currentItem.count);
-                currentID = -1;
-                movingObject.gameObject.SetActive(false);
-            }
-            else if (targetItem.id == 0)
-            {
-                // Кладём в пустую ячейку
-                AddInventoryItem(targetID, currentItem);
-                AddItem(currentID, data.items[0], 0);
-                currentID = -1;
-                movingObject.gameObject.SetActive(false);
-            }
-            else if (currentItem.id != targetItem.id)
-            {
-                // Меняем местами
-                ItemInventory temp = CopyInventoryItem(targetItem);
-                AddInventoryItem(targetID, currentItem);
-                AddInventoryItem(currentID, temp);
-                currentID = -1;
-                movingObject.gameObject.SetActive(false);
-            }
-            else
-            {
-                // Складываем стаки
-                int total = currentItem.count + targetItem.count;
-                int maxStack = 16;
-
-                if (total <= maxStack)
-                {
-                    targetItem.count = total;
-                    currentID = -1;
-                    movingObject.gameObject.SetActive(false);
-                }
-                else
-                {
-                    targetItem.count = maxStack;
-                    currentItem.count = total - maxStack;
-                    movingObject.gameObject.SetActive(true);
-                }
-
-                targetItem.itemGameObj.GetComponentInChildren<TextMeshProUGUI>().text =
-                    targetItem.count > 1 ? targetItem.count.ToString() : "";
-            }
-        }
-    }
-
-    private void HandleRightClick(int targetID)
-    {   
-        Debug.Log($"[HandleRightClick] ID: {targetID}, Count: {items[targetID].count}, ID: {items[targetID].id}");
-        if (currentID == -1)
-        {
-            if (!items[targetID].isEmpty() && items[targetID].count > 0)
-            {
-                currentID = targetID;
-                currentItem = new ItemInventory
-                {
-                    id = items[targetID].id,
-                    count = 1,
-                    itemGameObj = items[targetID].itemGameObj
-                };
-
-                items[targetID].count--;
-
-                if (items[targetID].count <= 0)
-                {
-                    // Очищаем ячейку только если ничего не осталось
-                    items[targetID].id = 0;
-                    items[targetID].count = 0;
-                    UpdateSlot(targetID);
-                }
-                else
-                {
-                    UpdateSlot(targetID); // ✅ Обновляем без вызова AddItem
-                }
-
-                movingObject.gameObject.SetActive(true);
-                movingObject.GetComponent<Image>().sprite = data.items[currentItem.id].img;
-            }
-        }
-        else
+        // Если предмет был взят ПКМ (1 шт. из стака)
+        if (isRightClickPickup)
         {
             ItemInventory targetItem = items[targetID];
 
@@ -326,19 +230,104 @@ public class Inventory : MonoBehaviour
                 items[targetID].id = currentItem.id;
                 items[targetID].count = 1;
                 UpdateSlot(targetID);
+            }
+            else if (targetItem.id == currentItem.id && targetItem.count < 16)
+            {
+                // Добавляем 1 к стаку того же типа
+                targetItem.count++;
+                UpdateSlot(targetID);
+            }
 
-                currentItem.count--;
+            currentItem.count--;
+
+            if (currentItem.count <= 0)
+            {
+                currentID = -1;
+                movingObject.gameObject.SetActive(false);
+                isRightClickPickup = false;
+            }
+
+            return; // Выход, чтобы не обрабатывать дальше как обычный перенос
+        }
+
+        // Обычное перемещение предметов (весь стак)
+        if (currentID == -1)
+        {
+            if (!items[targetID].isEmpty())
+            {
+                currentID = targetID;
+                currentItem = CopyInventoryItem(items[currentID]);
+
+                movingObject.gameObject.SetActive(true);
+                movingObject.GetComponent<Image>().sprite = data.items[currentItem.id].img;
+
+                items[targetID].id = 0;
+                items[targetID].count = 0;
+                UpdateSlot(targetID);
+            }
+        }
+        else
+        {
+            ItemInventory targetItem = items[targetID];
+
+            if (targetItem.id == 0)
+            {
+                // Кладём в пустую ячейку
+                AddInventoryItem(targetID, currentItem);
+
+                if (!isRightClickPickup)
+                {
+                    items[currentID].id = 0;
+                    items[currentID].count = 0;
+                    UpdateSlot(currentID);
+                }
+
+                currentID = -1;
+                movingObject.gameObject.SetActive(false);
+            }
+            else if (currentItem.id == targetItem.id && targetItem.count < 16)
+            {
+                // Добавляем по 1, если есть место
+                int spaceLeft = 16 - targetItem.count;
+                int toAdd = Mathf.Min(spaceLeft, currentItem.count);
+
+                targetItem.count += toAdd;
+                currentItem.count -= toAdd;
+                UpdateSlot(targetID);
+
                 if (currentItem.count <= 0)
                 {
                     currentID = -1;
                     movingObject.gameObject.SetActive(false);
                 }
             }
-            else if (currentItem.id == targetItem.id && targetItem.count < 16)
+            else if (currentItem.id != targetItem.id)
             {
-                // Добавляем к существующему стаку
-                targetItem.count++;
-                currentItem.count--;
+                // Обмен
+                ItemInventory temp = CopyInventoryItem(targetItem);
+                AddInventoryItem(targetID, currentItem);
+                AddInventoryItem(currentID, temp);
+
+                currentID = -1;
+                movingObject.gameObject.SetActive(false);
+                UpdateSlot(targetID);
+                UpdateSlot(currentID);
+            }
+            else
+            {
+                // Складываем два стака
+                int total = currentItem.count + targetItem.count;
+
+                if (total <= 16)
+                {
+                    targetItem.count = total;
+                    currentItem.count = 0;
+                }
+                else
+                {
+                    targetItem.count = 16;
+                    currentItem.count = total - 16;
+                }
 
                 UpdateSlot(targetID);
 
@@ -350,6 +339,89 @@ public class Inventory : MonoBehaviour
             }
         }
     }
+
+    private void HandleRightClick(int targetID)
+    {
+        if (currentID == -1)
+        {
+            // Взять 1 предмет из выбранного стака
+            if (!items[targetID].isEmpty() && items[targetID].count > 0)
+            {
+                currentID = targetID;
+
+                currentItem = new ItemInventory
+                {
+                    id = items[targetID].id,
+                    count = 1,
+                    itemGameObj = items[targetID].itemGameObj
+                };
+
+                originalCountBeforePickup = items[targetID].count;
+
+                items[targetID].count--;
+
+                if (items[targetID].count <= 0)
+                {
+                    items[targetID].id = 0;
+                    items[targetID].count = 0;
+                }
+
+                isRightClickPickup = true;
+
+                movingObject.gameObject.SetActive(true);
+                movingObject.GetComponent<Image>().sprite = data.items[currentItem.id].img;
+
+                UpdateSlot(targetID);
+            }
+        }
+        else
+        {
+            // Если пытаемся положить обратно в исходный слот — разрешаем
+            if (targetID == currentID)
+            {
+                items[targetID].id = currentItem.id;
+                items[targetID].count += 1;
+                currentItem.count--;
+
+                UpdateSlot(targetID);
+
+                if (currentItem.count <= 0)
+                {
+                    currentID = -1;
+                    isRightClickPickup = false;
+                    movingObject.gameObject.SetActive(false);
+                }
+
+                return;
+            }
+
+            ItemInventory targetItem = items[targetID];
+
+            if (targetItem.isEmpty())
+            {
+                items[targetID].id = currentItem.id;
+                items[targetID].count = 1;
+
+                currentItem.count--;
+                UpdateSlot(targetID);
+            }
+            else if (targetItem.id == currentItem.id && targetItem.count < 16)
+            {
+                targetItem.count++;
+                currentItem.count--;
+
+                UpdateSlot(targetID);
+            }
+
+            if (currentItem.count <= 0)
+            {
+                currentID = -1;
+                isRightClickPickup = false;
+                movingObject.gameObject.SetActive(false);
+            }
+        }
+    }
+
 
     public void DeleteItem(int id)
     {

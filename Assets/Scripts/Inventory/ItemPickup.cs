@@ -26,7 +26,7 @@ public class ItemPickup : MonoBehaviour
     void PickUp()
     {
         // Add item to inventory
-        inventory.SeachForSameItem(inventory.data.items[itemId], count);
+        inventory.SearchForSameItem(inventory.data.items[itemId], count);
         Destroy(gameObject); // Remove item after pickup
     }
 

@@ -456,6 +456,19 @@ public class Inventory : MonoBehaviour
         newItem.count = old.count;
         return newItem;
     }
+    public bool HasKey()
+    {
+        foreach (var item in items)
+        {
+            if (item.id == 3 && item.count > 0)
+            {
+                Debug.LogWarning("Ключ взят, id: " + item.id + ", count: " + item.count); // Лог перед return
+                return true;
+            }
+        }
+        Debug.LogWarning("Ключ не найден в инвентаре"); // Лог, если ключ не найден
+        return false;
+    }
 }
 
 [System.Serializable]

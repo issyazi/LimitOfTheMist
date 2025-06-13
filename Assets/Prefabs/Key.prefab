@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 579635997007818296}
   - component: {fileID: 2158507997775362796}
   m_Layer: 0
-  m_Name: Fire
+  m_Name: Key
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -75,7 +75,7 @@ SpriteRenderer:
   m_SortingLayerID: -2086610477
   m_SortingLayer: 4
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 9fba50b1bd2805f49adaa15c5d98b160, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 0a7c42e2ec9adc040bd402a342ccd442, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -122,7 +122,7 @@ PolygonCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.375, y: 1.375}
+    oldSize: {x: 1, y: 1}
     newSize: {x: 1.375, y: 1.375}
     adaptiveTilingThreshold: 0.5
     drawMode: 0

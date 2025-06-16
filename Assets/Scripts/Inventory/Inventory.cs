@@ -74,6 +74,13 @@ public class Inventory : MonoBehaviour
 
     public void ToggleInventory()
     {
+        // Блокируем переключение инвентаря, если диалог активен
+        if (GameInput.IsDialogueActive())
+        {
+            Debug.Log("Инвентарь заблокирован: диалог активен");
+            return;
+        }
+
         isInventoryOpen = !isInventoryOpen;
         backGround.SetActive(isInventoryOpen);
         Time.timeScale = isInventoryOpen ? 0f : 1f;

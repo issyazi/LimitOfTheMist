@@ -6,17 +6,20 @@ using System.Collections.Generic;
 using TMPro;
 using Newtonsoft.Json;
 using System;
+using UnityEngine.EventSystems;
+using System.Linq;
 
 public class NPCKaira : MonoBehaviour
 {
     public TextMeshProUGUI dialogueText;
     public TMP_InputField playerInput;
     public Button sendButton;
+    public GameObject interactionPrompt; // Плашка "E - поговорить"
+    public Canvas dialogueCanvas; // Канвас с диалоговым UI
     private string apiKey = "AIzaSyA0dMB4x2MgtJ4-CrUe5pU3pmDqPenqyz8";
-    private string conversationHistory = "";
+    private static string conversationHistory = ""; // Статическая для сохранения между сессиями
     private bool isTalking = false;
     private bool hasGivenFullInfo = false;
-    private string playerMood = "neutral"; // neutral, friendly, annoyed
     private bool isPlayerInRange = false;
     private bool askedName = false;
     private string playerName = "";
@@ -25,8 +28,10 @@ public class NPCKaira : MonoBehaviour
     private int frustrationCount = 0; // Счётчик раздражения
     private int retryCount = 0; // Счётчик попыток перезапуска
     private const int MAX_RETRIES = 2; // Максимум попыток
-    private bool nameRepeated = false; // Отслеживание повторного вопроса об имени
-    private int apologyCount = 0; // Счётчик извинений
+    private int apologyCount = 0; // Счётчик извинений для ограничения
+
+    // Публичное свойство для доступа к состоянию диалога
+    public bool IsTalking => isTalking;
 
     // Списки для разнообразия
     private string[] randomGreetings = { "О, новый друг!", "Привет, странник!", "Рада тебя видеть!" };
@@ -49,13 +54,22 @@ public class NPCKaira : MonoBehaviour
         "блин", "чертыхаться", "чёрт бы побрал", "зараза", "дьявол тебя забери", "к чёртовой матери",
         "чёрт знает что", "ерунда", "фигня", "бардак"
     };
-    private string[] nonNames = { "утюг", "стол", "дверь", "окно", "машина", "кот", "собака", "стул", "лампа", "книга" }; // Примеры неимён
+    private string[] nonNames = { "утюг", "стол", "дверь", "окно", "машина", "кот", "собака", "стул", "лампа", "книга" };
 
     void Start()
     {
         dialogueText.text = "";
-        playerInput.gameObject.SetActive(false);
-        sendButton.onClick.AddListener(SendMessage);
+        if (dialogueCanvas) dialogueCanvas.gameObject.SetActive(false);
+        if (interactionPrompt) interactionPrompt.SetActive(false);
+        // Добавляем обработчик клика для кнопки отправки
+        if (sendButton != null)
+        {
+            sendButton.onClick.AddListener(SendMessage);
+        }
+        if (playerInput != null)
+        {
+            playerInput.onEndEdit.AddListener((value) => { if (Input.GetKeyDown(KeyCode.Return)) SendMessage(); });
+        }
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -63,10 +77,7 @@ public class NPCKaira : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isPlayerInRange = true;
-            if (!isTalking && Input.GetKeyDown(KeyCode.E))
-            {
-                StartDialogue();
-            }
+            if (interactionPrompt) interactionPrompt.SetActive(true);
         }
     }
 
@@ -75,32 +86,60 @@ public class NPCKaira : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isPlayerInRange = false;
-            playerInput.gameObject.SetActive(false);
+            if (interactionPrompt) interactionPrompt.SetActive(false);
+            if (isTalking) CloseDialogue();
         }
     }
 
     void Update()
     {
-        if (isPlayerInRange && !isTalking && Input.GetKeyDown(KeyCode.E))
+        if (isPlayerInRange && !isTalking && (Input.GetKeyDown(KeyCode.E) || Input.GetMouseButtonDown(0)))
         {
             StartDialogue();
+        }
+        if (isTalking && Input.GetKeyDown(KeyCode.Return))
+        {
+            SendMessage();
+        }
+        if (isTalking && Input.GetKeyDown(KeyCode.Escape))
+        {
+            CloseDialogue();
+        }
+        if (isTalking && Input.GetMouseButtonDown(0))
+        {
+            // Проверяем, клик был ли над любым UI-элементом
+            if (!EventSystem.current.IsPointerOverGameObject())
+            {
+                CloseDialogue();
+            }
         }
     }
 
     void StartDialogue()
     {
         isTalking = true;
-        string greeting = randomGreetings[UnityEngine.Random.Range(0, randomGreetings.Length)];
-        conversationHistory = $"Кайра: {greeting} Я Кайра, сбежала из 'Эксперимент-0'. Кристаллы тают из-за саботажа элиты. Варден в Обители Искр, Туман — древняя сила, пробуждённая экспериментами. Как тебя зовут?\n";
-        UpdateDialogueText();
-        playerInput.gameObject.SetActive(true);
+        Time.timeScale = 0; // Приостановка игры
+        GameInput.Instance.SetCombatEnabled(false); // Блокировка атак
+        if (dialogueCanvas) dialogueCanvas.gameObject.SetActive(true);
+        if (interactionPrompt) interactionPrompt.SetActive(false);
+        // Если имя уже задано, продолжаем с текущего контекста
+        if (!string.IsNullOrEmpty(playerName) && !conversationHistory.Contains($"You: {playerName}"))
+        {
+            conversationHistory += $"You: {playerName}\nКайра: Приятно познакомиться, {playerName}! Давай разберёмся с Туманом и Варденом.\n";
+        }
+        else if (string.IsNullOrEmpty(conversationHistory))
+        {
+            string greeting = randomGreetings[UnityEngine.Random.Range(0, randomGreetings.Length)];
+            conversationHistory = $"Кайра: {greeting} Я Кайра, сбежала из 'Эксперимент-0'. Кристаллы тают из-за саботажа элиты. Варден в Обители Искр, Туман — древняя сила, пробуждённая экспериментами. Как тебя зовут?\n";
+        }
+        UpdateDialogueText(conversationHistory); // Показываем текущий контекст
     }
 
     public void SendMessage()
     {
-        string playerMessage = playerInput.text.Trim();
-        if (string.IsNullOrEmpty(playerMessage)) return;
+        if (string.IsNullOrEmpty(playerInput.text.Trim())) return;
 
+        string playerMessage = playerInput.text.Trim();
         conversationHistory += $"You: {playerMessage}\n";
         UpdateDialogueText("Кайра: Подожди, обдумываю…");
 
@@ -133,14 +172,16 @@ public class NPCKaira : MonoBehaviour
             }
             else
             {
-                string response = "Кайра: " + (string.IsNullOrEmpty(playerName) ? "Прости, не сердись!" : $"{playerName}, хватит хамить!") + 
-                                 " Давай к делу. Ищи Вардена в Обители!";
+                string response = apologyCount < 2 ? "Кайра: " + (string.IsNullOrEmpty(playerName) ? "Прости, не сердись!" : $"{playerName}, прости!") + 
+                                " Давай к делу. Ищи Вардена в Обители!" : 
+                                $"Кайра: {playerName}, хватит хамить! Ищи Вардена в Обители!";
                 UpdateMoodAndInfo(playerMessage, response);
                 frustrationCount++;
                 if (frustrationCount > 2) moodLevel = Math.Max(moodLevel - 1, -2);
+                apologyCount++;
             }
         }
-        else if (!askedName && !string.IsNullOrEmpty(playerMessage))
+        else if (!askedName && IsValidName(playerMessage))
         {
             playerName = playerMessage;
             string response = $"Кайра: Приятно познакомиться, {playerName}! Давай разберёмся с Туманом и Варденом.";
@@ -149,16 +190,26 @@ public class NPCKaira : MonoBehaviour
         }
         else
         {
-            playerInput.text = "";
+            playerInput.text = ""; // Очистка input после отправки
             retryCount = 0;
             StartCoroutine(SendToGemini(playerMessage));
         }
     }
 
+    private bool IsValidName(string input)
+    {
+        // Проверка: длина > 2, нет цифр, нет команд вроде "напиши" или "write"
+        if (input.Length <= 2 || input.Any(c => char.IsDigit(c)) || input.ToLower().Contains("напиши") || input.ToLower().Contains("write"))
+        {
+            return false;
+        }
+        return true;
+    }
+
     IEnumerator SendToGemini(string message)
     {
         string url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
-        string context = "Ты — Кайра, бывшая сотрудница 'Эксперимент-0' в игре 'Limit of the Mist'. Ты саркастична, решительна, но готова помочь. Знаешь о саботаже элиты, истощении кристаллов, экспериментах корпорации, Тумане как древней силе, пробуждённой ими, и Вардене в Обители Искр. Не знаешь о древней цивилизации, сознании Тумана или тайной организации. Отвечай коротко (2-200 символов), дружелюбно, с лёгким сарказмом. Строго следуй сюжету: саботаж элиты, тающие кристаллы, Туман, Варден, Обитель Искр. Ты не знаешь информацию из реальной жизни в игре, не используй её. Если игрок хамит, показывай раздражение после 2 раз. Не упоминай сестру, если игрок не рассказывал. Давай конкретные подсказки (например, 'Ищи Вардена', 'Возьми свет'). Ограничивай извинения 2 раза, затем предлагай шаг.";
+        string context = "Ты — Кайра, бывшая сотрудница 'Эксперимент-0' в игре 'Limit of the Mist'. Ты саркастична, решительна, но готова помочь. Знаешь о саботаже элиты, истощении кристаллов, экспериментах корпорации, Тумане как древней силе, пробуждённой ими, и Вардене в Обители Искр. Не знаешь о древней цивилизации, сознании Тумана или тайной организации. Отвечай коротко (2-200 символов), дружелюбно, с лёгким сарказмом. Строго следуй сюжету: саботаж элиты, тающие кристаллы, Туман, Варден, Обитель Искр. Игнорируй вопросы вне сюжета (еда, разработчики, реальная жизнь). Если игрок хамит, показывай раздражение после 2 извинений. Не упоминай сестру, если игрок не рассказывал. Давай конкретные подсказки (например, 'Ищи Вардена', 'Возьми свет').";
         string jsonData = "{\"contents\": [{\"parts\": [{\"text\": \"" + context + "\\n" + conversationHistory + message + "\"}]}], \"generationConfig\": {\"maxOutputTokens\": 75, \"temperature\": 0.7}}";
         Debug.Log("Request: " + jsonData);
 
@@ -226,8 +277,6 @@ public class NPCKaira : MonoBehaviour
 
     void UpdateMoodAndInfo(string playerMessage, string kairaResponse)
     {
-        // Обработка имени уже выполнена в SendMessage
-
         // Реакция на контекст
         if (playerMessage.ToLower().Contains("сестра") || playerMessage.ToLower().Contains("пропала"))
         {
@@ -248,7 +297,6 @@ public class NPCKaira : MonoBehaviour
         {
             kairaResponse = $"Кайра: {playerName}, помогу! Иди к Обители, там Варден!";
         }
-        // Если нет условий, используем ответ API как есть
         else if (!string.IsNullOrEmpty(kairaResponse) && !kairaResponse.StartsWith("Кайра: Ох,"))
         {
             // Оставляем как есть
@@ -260,15 +308,21 @@ public class NPCKaira : MonoBehaviour
 
         if (kairaResponse.Length > 200) kairaResponse = kairaResponse.Substring(0, 200).Trim() + "…";
         conversationHistory += kairaResponse + "\n";
-        UpdateDialogueText();
-        if (hasGivenFullInfo && !playerMessage.ToLower().Contains("груб")) Invoke("CheckReminder", 2f);
-
-        Debug.Log($"Mood: {playerMood}, Level: {moodLevel}, Frustration: {frustrationCount}, Retry: {retryCount}, Name: {playerName}");
+        UpdateDialogueText($"You: {playerMessage}\n{kairaResponse}"); // Показываем только текущий обмен
     }
 
-    void UpdateDialogueText(string prefix = "")
+    void UpdateDialogueText(string text)
     {
-        dialogueText.text = prefix + "\n" + conversationHistory;
+        dialogueText.text = text;
+    }
+
+    void CloseDialogue()
+    {
+        isTalking = false;
+        Time.timeScale = 1; // Возобновление игры
+        GameInput.Instance.SetCombatEnabled(true); // Разблокировка атак
+        if (dialogueCanvas) dialogueCanvas.gameObject.SetActive(false);
+        UpdateDialogueText(""); // Очищаем экран
     }
 
     void CheckReminder()

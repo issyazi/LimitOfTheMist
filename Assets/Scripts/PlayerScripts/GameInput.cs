@@ -94,7 +94,21 @@ public class GameInput : MonoBehaviour
 
     private void OnDestroy()
     {
-        playerControls.Combat.Attack.started -= PlayerAttack_started;
-        playerControls.Dispose();
+        if (playerControls != null)
+        {
+            playerControls.Combat.Attack.started -= PlayerAttack_started;
+            playerControls.Dispose();
+        }
+    }
+
+    // Статический метод для проверки активности диалога
+    public static bool IsDialogueActive()
+    {
+        NPCKaira[] kairas = FindObjectsOfType<NPCKaira>();
+        foreach (var kaira in kairas)
+        {
+            if (kaira.IsTalking) return true; // Используем публичное свойство
+        }
+        return false;
     }
 }

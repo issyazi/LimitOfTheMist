@@ -176,6 +176,7 @@ public class Inventory : MonoBehaviour
             UpdateSlot(i);
         }
     }
+
     public void UpdateSlot(int id)
     {
         if (id < 0 || id >= maxCount || items[id] == null) return;
@@ -257,6 +258,7 @@ public class Inventory : MonoBehaviour
             {
                 currentID = targetID;
                 currentItem = CopyInventoryItem(items[currentID]);
+                currentItem.count = items[currentID].count; // Сохраняем полное количество
 
                 movingObject.gameObject.SetActive(true);
                 movingObject.GetComponent<Image>().sprite = data.items[currentItem.id].img;
@@ -264,13 +266,23 @@ public class Inventory : MonoBehaviour
                 items[targetID].id = 0;
                 items[targetID].count = 0;
                 UpdateSlot(targetID);
+                Debug.Log($"Took item from slot {targetID}, count: {currentItem.count}");
             }
         }
         else
         {
             ItemInventory targetItem = items[targetID];
 
-            if (targetItem.id == 0)
+            if (targetID == currentID) // Возврат в исходную ячейку
+            {
+                items[currentID].id = currentItem.id;
+                items[currentID].count = currentItem.count;
+                UpdateSlot(currentID);
+                currentID = -1;
+                movingObject.gameObject.SetActive(false);
+                Debug.Log($"Returned item to slot {currentID}, count: {currentItem.count}");
+            }
+            else if (targetItem.id == 0)
             {
                 // Кладём в пустую ячейку
                 AddInventoryItem(targetID, currentItem);
@@ -284,6 +296,7 @@ public class Inventory : MonoBehaviour
 
                 currentID = -1;
                 movingObject.gameObject.SetActive(false);
+                Debug.Log($"Placed item in slot {targetID}, count: {currentItem.count}");
             }
             else if (currentItem.id == targetItem.id && targetItem.count < 16)
             {
@@ -299,6 +312,7 @@ public class Inventory : MonoBehaviour
                 {
                     currentID = -1;
                     movingObject.gameObject.SetActive(false);
+                    Debug.Log($"Added {toAdd} to slot {targetID}, remaining: {currentItem.count}");
                 }
             }
             else if (currentItem.id != targetItem.id)
@@ -312,6 +326,7 @@ public class Inventory : MonoBehaviour
                 movingObject.gameObject.SetActive(false);
                 UpdateSlot(targetID);
                 UpdateSlot(currentID);
+                Debug.Log($"Swapped items between slots {currentID} and {targetID}");
             }
             else
             {
@@ -335,6 +350,7 @@ public class Inventory : MonoBehaviour
                 {
                     currentID = -1;
                     movingObject.gameObject.SetActive(false);
+                    Debug.Log($"Stacked items in slot {targetID}, remaining: {currentItem.count}");
                 }
             }
         }
@@ -422,7 +438,6 @@ public class Inventory : MonoBehaviour
         }
     }
 
-
     public void DeleteItem(int id)
     {
         if (id >= 0 && id < maxCount)
@@ -456,6 +471,7 @@ public class Inventory : MonoBehaviour
         newItem.count = old.count;
         return newItem;
     }
+
     public bool HasKey()
     {
         foreach (var item in items)
